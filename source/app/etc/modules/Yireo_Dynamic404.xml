@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Yireo Dynamic404-module for Magento
+ *
+ * @package     Yireo_Dynamic404
+ * @author      Yireo (https://www.yireo.com/)
+ * @copyright   Copyright 2017 Yireo (https://www.yireo.com/)
+ * @license     Open Software License
+ */
+-->
+<config>
+    <modules>
+        <Yireo_Dynamic404>
+            <active>true</active>
+            <codePool>community</codePool>
+        </Yireo_Dynamic404>
+    </modules>
+</config>

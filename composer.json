@@ -1,0 +1,29 @@
+{
+    "name": "yireo/yireo_dynamic404",
+    "license": "OSL-3.0",
+    "type": "magento-module",
+    "homepage": "", 
+    "description": "Dynamically redirect 404 errors",
+    "authors": [
+        {
+            "name": "Jisse Reitsma (Yireo)",
+            "email": "jisse@yireo.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0"
+    },
+    "require-dev":{
+        "phpunit/phpunit":"*",
+        "composer/composer":"*@dev"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.firegento.com"
+        }
+    ],
+    "extra":{
+        "magento-root-dir": "source/"
+    }
+}

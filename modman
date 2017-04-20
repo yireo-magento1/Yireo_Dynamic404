@@ -1,0 +1,3 @@
+# Modman file
+source/app/code/community/Yireo/Dynamic404                    app/code/community/Yireo/Dynamic404
+source/app/etc/modules/Yireo_Dynamic404.xml                   app/etc/modules/Yireo_Dynamic404.xml

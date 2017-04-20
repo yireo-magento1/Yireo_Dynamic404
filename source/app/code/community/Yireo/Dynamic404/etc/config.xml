@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Dynamic404 plugin for Magento 
+ *
+ * @package     Yireo_Dynamic404
+ * @author      Yireo
+ * @copyright   Copyright 2017 Yireo (https://www.yireo.com/)
+ * @license     Open Source License (OSL v3)
+ */
+-->
+<config>
+    <modules>
+        <Yireo_Dynamic404>
+            <version>0.0.1</version>
+        </Yireo_Dynamic404>
+    </modules>
+
+    <global>
+        <blocks>
+            <dynamic404>
+                <class>Yireo_Dynamic404_Block</class>
+            </dynamic404>
+        </blocks>
+        <helpers>
+            <dynamic404>
+                <class>Yireo_Dynamic404_Helper</class>
+            </dynamic404>
+        </helpers>
+        <models>
+            <dynamic404>
+                <class>Yireo_Dynamic404_Model</class>
+            </dynamic404>
+        </models>
+    </global>
+
+    <frontend>
+        <events>
+            <controller_action_postdispatch>
+                <observers>
+                    <cms>
+                        <class>Yireo_Dynamic404_Observer_FixUrl</class>
+                        <method>execute</method>
+                    </cms>
+                </observers>
+            </controller_action_postdispatch>
+        </events>
+    </frontend>
+
+    <adminhtml>
+        <acl>
+            <resources>
+                <admin>
+                    <children>
+                        <system>
+                            <children>
+                                <config>
+                                    <children>
+                                        <dynamic404 translate="title" module="dynamic404">
+                                            <title>Dynamic404</title>
+                                        </dynamic404>
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+                    </children>
+                </admin>
+            </resources>
+        </acl>
+    </adminhtml>
+
+    <default>
+        <dynamic404>
+            <settings>
+                <active>1</active>
+            </settings>
+        </dynamic404>
+    </default>
+</config>
