@@ -24,6 +24,11 @@ class Yireo_Dynamic404_Observer_FixUrl
     private $response;
 
     /**
+     * @var Yireo_Dynamic404_Helper_Data
+     */
+    private $helper;
+
+    /**
      * @var Yireo_Dynamic404_Factory_Matcher
      */
     private $matcherFactory;
@@ -35,6 +40,7 @@ class Yireo_Dynamic404_Observer_FixUrl
     {
         $this->request = Mage::app()->getRequest();
         $this->response = Mage::app()->getResponse();
+        $this->helper = Mage::helper('dynamic404');
         $this->matcherFactory = new Yireo_Dynamic404_Factory_Matcher;
     }
 
@@ -62,14 +68,16 @@ class Yireo_Dynamic404_Observer_FixUrl
             }
         }
 
-        //echo $result; exit;
-
         if (empty($result)) {
+            $this->helper->log($this->request->getHttpHost().$this->request->getRequestUri());
             return $this;
         }
 
         $queryParts = $this->request->getQuery();
-        $result .= '?' . http_build_query($queryParts);
+        $query = http_build_query($queryParts);
+        if (!empty($query)) {
+            $result .= '?' . $query;
+        }
 
         $this->response->clearHeaders();
         $this->response->setRedirect(Mage::getBaseUrl().$result, 301);
@@ -124,10 +132,14 @@ class Yireo_Dynamic404_Observer_FixUrl
      */
     protected function isAllowedAction()
     {
-        if ($this->request->getActionName() === 'noRoute') {
-            return true;
+        if ($this->helper->enabled() === false) {
+            return false;
         }
 
-        return false;
+        if ($this->request->getActionName() !== 'noRoute') {
+            return false;
+        }
+
+        return true;
     }
 }

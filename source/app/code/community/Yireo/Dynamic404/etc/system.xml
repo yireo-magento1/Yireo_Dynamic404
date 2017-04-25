@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Yireo_Dynamic404 for Magento
+ *
+ * @package     Yireo_Dynamic404
+ * @author      Yireo (https://www.yireo.com/)
+ * @copyright   Copyright 2017 Yireo (https://www.yireo.com/)
+ * @license     Open Source License (OSL v3)
+ */
+-->
+<config>
+    <tabs>
+        <yireo translate="label" module="dynamic404">
+            <label>Yireo</label>
+            <sort_order>900</sort_order>
+        </yireo>
+    </tabs>
+    <sections>
+        <dynamic404 translate="label" module="dynamic404">
+            <label>Dynamic404</label>
+            <tab>yireo</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>74</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <settings translate="label">
+                    <label>Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>1</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label">
+                            <label>Enabled</label>
+                            <comment><![CDATA[Enable or disable reCAPTCHA quickly]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        <debugging translate="label">
+                            <label>Debugging</label>
+                            <comment><![CDATA[Log to yireo_dynamic404.log]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>100</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </debugging>
+                    </fields>
+                </settings>
+            </groups>
+        </dynamic404>
+    </sections>
+</config>

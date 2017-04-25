@@ -72,7 +72,8 @@
     <default>
         <dynamic404>
             <settings>
-                <active>1</active>
+                <enabled>1</enabled>
+                <debugging>1</debugging>
             </settings>
         </dynamic404>
     </default>
