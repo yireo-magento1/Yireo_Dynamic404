@@ -12,7 +12,7 @@
 <config>
     <modules>
         <Yireo_Dynamic404>
-            <version>0.0.1</version>
+            <version>0.1.2</version>
         </Yireo_Dynamic404>
     </modules>
 

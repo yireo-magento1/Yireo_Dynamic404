@@ -24,9 +24,9 @@ class Yireo_Dynamic404_Observer_FixUrl
     private $response;
 
     /**
-     * @var string
+     * @var Yireo_Dynamic404_Factory_Matcher
      */
-    private $urlSuffix = '';
+    private $matcherFactory;
 
     /**
      * Yireo_Dynamic404_Observer_FixUrl constructor.
@@ -35,6 +35,7 @@ class Yireo_Dynamic404_Observer_FixUrl
     {
         $this->request = Mage::app()->getRequest();
         $this->response = Mage::app()->getResponse();
+        $this->matcherFactory = new Yireo_Dynamic404_Factory_Matcher;
     }
 
     /**
@@ -49,8 +50,17 @@ class Yireo_Dynamic404_Observer_FixUrl
             return $this;
         }
 
-        $pathParts = $this->getPathParts();
-        $result = $this->findBestMatch($pathParts);
+        $path = $this->getPathInfo();
+        $urlSuffix = $this->stripUrlSuffixFromPath($path);
+        $pathParts = $this->getPathParts($path);
+
+        $matchers = $this->matcherFactory->getMatchers();
+        foreach ($matchers as $matcher) {
+            $result = $matcher->findBestMatch($pathParts, $urlSuffix);
+            if (!empty($result)) {
+                break;
+            }
+        }
 
         //echo $result; exit;
 
@@ -58,72 +68,48 @@ class Yireo_Dynamic404_Observer_FixUrl
             return $this;
         }
 
+        $queryParts = $this->request->getQuery();
+        $result .= '?' . http_build_query($queryParts);
+
         $this->response->clearHeaders();
         $this->response->setRedirect(Mage::getBaseUrl().$result, 301);
     }
 
     /**
-     * @param $parts
-     *
-     * @return mixed
+     * @return string
      */
-    protected function findBestMatch($parts)
-    {
-        $results = $this->getUrlRewriteMatches($parts);
-
-        foreach ($results as $result) {
-            $resultParts = explode('/', $result['request_path']);
-            if (count($resultParts) === count($parts)) {
-                return $result['request_path'];
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param $parts
-     *
-     * @return mixed
-     */
-    protected function getUrlRewriteMatches($parts)
-    {
-        /** @var Mage_Core_Model_Resource $resource */
-        $resource = Mage::getSingleton('core/resource');
-
-        /** @var Varien_Db_Adapter_Interface $db */
-        $db = $resource->getConnection('core_read');
-        $urlRewriteTable = $resource->getTableName('core_url_rewrite');
-
-        $partsSearch = implode('%/', $parts).'%'.$this->urlSuffix;
-        $selectFields = [$db->quoteIdentifier('request_path'), $db->quoteIdentifier('target_path')];
-        $query = 'SELECT '.implode(',', $selectFields).' FROM ' . $db->quoteIdentifier($urlRewriteTable);
-        $query .= ' WHERE '.$db->quoteIdentifier('request_path').' LIKE '.$db->quote($partsSearch);
-        $query .= ' AND store_id = '. (int) Mage::app()->getStore()->getId();
-        $query .= ' ORDER BY '.$db->quoteIdentifier('url_rewrite_id');
-        $query .= ' LIMIT 0,100';
-
-        //echo $query;exit;
-
-        $results = $db->fetchAll($query);
-
-        return $results;
-    }
-
-    /**
-     * @return array
-     */
-    protected function getPathParts()
+    protected function getPathInfo()
     {
         $path = $this->request->getPathInfo();
         $path = preg_replace('/^\//', '', $path);
+        return $path;
+    }
 
+    /**
+     * @param $path
+     *
+     * @return string
+     */
+    protected function stripUrlSuffixFromPath(&$path)
+    {
         $pathSuffix = false;
+        $urlSuffix = '';
+
         if (preg_match('/\.html$/', $path, $pathSuffix)) {
             $path = preg_replace('/\.html$/', '', $path);
-            $this->urlSuffix = $pathSuffix[0];
+            $urlSuffix = $pathSuffix[0];
         }
 
+        return $urlSuffix;
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return array
+     */
+    protected function getPathParts($path)
+    {
         $pathParts = explode('/', $path);
 
         foreach ($pathParts as $index => $pathPart) {
