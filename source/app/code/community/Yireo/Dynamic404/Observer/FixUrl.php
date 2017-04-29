@@ -69,7 +69,12 @@ class Yireo_Dynamic404_Observer_FixUrl
         }
 
         if (empty($result)) {
-            $this->helper->log($this->request->getHttpHost().$this->request->getRequestUri());
+            $requestUri = $this->request->getRequestUri();
+            if (!preg_match('/^\//', $requestUri)) {
+                $requestUri = '/' . $requestUri;
+            }
+
+            $this->helper->log($this->request->getHttpHost().$requestUri);
             return $this;
         }
 
