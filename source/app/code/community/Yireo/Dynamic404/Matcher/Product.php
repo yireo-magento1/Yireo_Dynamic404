@@ -67,9 +67,18 @@ class Yireo_Dynamic404_Matcher_Product extends Yireo_Dynamic404_Matcher_Generic
                 ->getCollection();
 
             /** @var Mage_Catalog_Model_Product $product */
-            $product = $productsCollection->addAttributeToFilter('url_path', $urlKey)->getFirstItem();
+            $products = $productsCollection
+                ->addAttributeToFilter('url_key', $urlKey)
+                ->addAttributeToFilter('status', 1)
+                ->addAttributeToSelect(['visibility', 'url_path', 'url_key'])
+            ;
+            //echo $productsCollection->getSelect();
 
-            if ($product->getId() > 0) {
+            foreach ($products as $product) {
+                if ($product->isVisibleInSiteVisibility() === false) {
+                    continue;
+                }
+
                 return $product;
             }
         }
@@ -83,7 +92,7 @@ class Yireo_Dynamic404_Matcher_Product extends Yireo_Dynamic404_Matcher_Generic
      */
     private function getStoreIds()
     {
-        $storeIds = [];
+        $storeIds = [0];
         $storeIds[] = $this->store->getId();
 
         $stores = $this->store->getWebsite()->getStores();

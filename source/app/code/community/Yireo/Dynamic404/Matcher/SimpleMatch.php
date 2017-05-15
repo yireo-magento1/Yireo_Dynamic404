@@ -53,7 +53,7 @@ class Yireo_Dynamic404_Matcher_SimpleMatch extends Yireo_Dynamic404_Matcher_Gene
             /** @var Mage_Catalog_Model_Product $product */
             $product = Mage::getModel('catalog/product')->load($match[1]);
 
-            if ($this->allowProductUrl($product)) {
+            if ($this->allowProduct($product)) {
                 return $product->getProductUrl();
             }
         }
@@ -66,9 +66,9 @@ class Yireo_Dynamic404_Matcher_SimpleMatch extends Yireo_Dynamic404_Matcher_Gene
      *
      * @return bool
      */
-    private function allowProductUrl(Mage_Catalog_Model_Product $product)
+    private function allowProduct(Mage_Catalog_Model_Product $product)
     {
-        if (!$product->isVisibleInCatalog()) {
+        if ($product->isVisibleInSiteVisibility() === false) {
             return false;
         }
 

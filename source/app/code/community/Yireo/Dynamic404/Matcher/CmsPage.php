@@ -11,12 +11,12 @@
 /**
  * Matcher class to find matches in category URL keys
  */
-class Yireo_Dynamic404_Matcher_Category extends Yireo_Dynamic404_Matcher_Generic
+class Yireo_Dynamic404_Matcher_CmsPage extends Yireo_Dynamic404_Matcher_Generic
 {
     /**
-     * @var Mage_Catalog_Model_Category
+     * @var Mage_Cms_Model_Page
      */
-    protected $category;
+    protected $cmsPage;
 
     /**
      * @var Mage_Core_Model_Store
@@ -30,7 +30,7 @@ class Yireo_Dynamic404_Matcher_Category extends Yireo_Dynamic404_Matcher_Generic
      */
     public function __construct($data = [])
     {
-        $this->category = Mage::getModel('catalog/category');
+        $this->cmsPage = Mage::getModel('cms/page');
         $this->store = Mage::app()->getStore();
 
         parent::__construct($data);
@@ -42,11 +42,10 @@ class Yireo_Dynamic404_Matcher_Category extends Yireo_Dynamic404_Matcher_Generic
     public function findBestMatch()
     {
         $lastPart = array_pop($this->parts);
-        $category = $this->getCategoryByUrlKey($lastPart);
+        $cmsPage = $this->getCmsPageByUrlKey($lastPart);
 
-        if ($category instanceof Mage_Catalog_Model_Category && $category->getId() > 0) {
-            $category->load($category->getId());
-            return $category->getUrl();
+        if ($cmsPage instanceof Mage_Cms_Model_Page && $cmsPage->getId() > 0) {
+            return $cmsPage->getIdentifier();
         }
 
         return false;
@@ -55,24 +54,25 @@ class Yireo_Dynamic404_Matcher_Category extends Yireo_Dynamic404_Matcher_Generic
     /**
      * @param string $urlKey
      *
-     * @return false|Mage_Catalog_Model_Category
+     * @return false|Mage_Cms_Model_Page
      */
-    private function getCategoryByUrlKey($urlKey)
+    private function getCmsPageByUrlKey($urlKey)
     {
         foreach ($this->getStoreIds() as $storeId) {
-            /** @var Mage_Catalog_Model_Resource_Category_Collection $categoryCollection */
-            $categoryCollection = $this->category
+            /** @var Mage_Cms_Model_Resource_Page_Collection $cmsPageCollection */
+            $cmsPageCollection = $this->cmsPage
                 ->setStoreId($storeId)
                 ->getCollection();
 
-            /** @var Mage_Catalog_Model_Category $category */
-            $category = $categoryCollection
-                ->addAttributeToFilter('url_key', $urlKey)
-                ->addAttributeToFilter('is_active', 1)
+            /** @var Mage_Cms_Model_Page $cmsPage */
+            $cmsPage = $cmsPageCollection
+                ->addFieldToSelect(['page_id', 'identifier'])
+                ->addFieldToFilter('identifier', $urlKey)
+                ->addFieldToFilter('is_active', 1)
                 ->getFirstItem();
 
-            if ($category->getId() > 0) {
-                return $category;
+            if ($cmsPage->getId() > 0) {
+                return $cmsPage;
             }
         }
 

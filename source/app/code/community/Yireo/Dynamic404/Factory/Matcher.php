@@ -54,6 +54,7 @@ class Yireo_Dynamic404_Factory_Matcher
             Yireo_Dynamic404_Matcher_UrlRewrite::class,
             Yireo_Dynamic404_Matcher_Product::class,
             Yireo_Dynamic404_Matcher_Category::class,
+            Yireo_Dynamic404_Matcher_CmsPage::class,
         ];
 
         $this->app->dispatchEvent('dynamic404_get_matcher_classes', $matcherClasses);

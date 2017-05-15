@@ -29,6 +29,11 @@ class Yireo_Dynamic404_Observer_FixUrl
     private $helper;
 
     /**
+     * @var Mage_Core_Helper_Url
+     */
+    private $coreUrlHelper;
+
+    /**
      * @var Yireo_Dynamic404_Factory_Matcher
      */
     private $matcherFactory;
@@ -41,6 +46,7 @@ class Yireo_Dynamic404_Observer_FixUrl
         $this->request = Mage::app()->getRequest();
         $this->response = Mage::app()->getResponse();
         $this->helper = Mage::helper('dynamic404');
+        $this->coreUrlHelper = Mage::helper('core/url');
         $this->matcherFactory = new Yireo_Dynamic404_Factory_Matcher;
     }
 
@@ -48,6 +54,7 @@ class Yireo_Dynamic404_Observer_FixUrl
      * Attempt to fix broken URLs
      *
      * @param Varien_Event_Observer $observer
+     *
      * @return Yireo_Dynamic404_Observer_FixUrl
      */
     public function execute(Varien_Event_Observer $observer)
@@ -69,14 +76,25 @@ class Yireo_Dynamic404_Observer_FixUrl
         $matchers = $this->matcherFactory->getMatchers($data);
         foreach ($matchers as $matcher) {
             $result = $matcher->findBestMatch();
-            if (!empty($result)) {
-                break;
+
+            if (empty($result)) {
+                continue;
             }
+
+            if (!preg_match('/^(http|https):\/\//', $result)) {
+                $result = Mage::getBaseUrl() . $result;
+            }
+
+            if ($result === $this->coreUrlHelper->getCurrentUrl()) {
+                continue;
+            }
+
+            break;
         }
 
         if (empty($result)) {
-            $this->helper->log($this->request->getHttpHost().$this->request->getRequestUri());
-            return $this;
+            $this->helper->log($this->request->getHttpHost() . $this->request->getRequestUri());
+            return $this->forwardToSearch();
         }
 
         $queryParts = $this->request->getQuery();
@@ -85,12 +103,16 @@ class Yireo_Dynamic404_Observer_FixUrl
             $result .= '?' . $query;
         }
 
-        if (!preg_match('/^(http|https):\/\//', $result)) {
-            $result = Mage::getBaseUrl().$result;
-        }
-
         $this->response->clearHeaders();
         $this->response->setRedirect($result, 301);
+    }
+
+    /**
+     * @return Yireo_Dynamic404_Observer_FixUrl
+     */
+    protected function forwardToSearch()
+    {
+        return $this;
     }
 
     /**
@@ -98,7 +120,7 @@ class Yireo_Dynamic404_Observer_FixUrl
      */
     protected function getPathInfo()
     {
-        $path = $this->request->getPathInfo();
+        $path = $this->request->getOriginalPathInfo();
         $path = preg_replace('/^\//', '', $path);
         return $path;
     }
@@ -139,6 +161,7 @@ class Yireo_Dynamic404_Observer_FixUrl
 
     /**
      * @return bool
+     * @throws RuntimeException
      */
     protected function isAllowedAction()
     {
@@ -148,6 +171,54 @@ class Yireo_Dynamic404_Observer_FixUrl
 
         if ($this->request->getActionName() !== 'noRoute') {
             return false;
+        }
+
+        if ($this->isInvalidRequest() === true) {
+            throw new RuntimeException('Invalid URL path');
+        }
+
+        if ($this->hasValidUrlExtension() === false) {
+            throw new RuntimeException('Invalid URL extension');
+        }
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isInvalidRequest()
+    {
+        $pathInfo = $this->getPathInfo();
+        $invalidPaths = [
+            'admin_html',
+            'webmail',
+            'typo3',
+            'backup',
+            'wordpress',
+        ];
+
+        foreach ($invalidPaths as $invalidPath) {
+            if (stristr($pathInfo, $invalidPath.'/')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function hasValidUrlExtension()
+    {
+        $ignoreExtensions = ['csv', 'doc', 'xml', 'log', 'php', 'sql', 'ini', 'gz', 'zip'];
+        $pathInfo = $this->getPathInfo();
+
+        foreach ($ignoreExtensions as $ignoreExtension) {
+            if (preg_match('/'.$ignoreExtension.'$/', $pathInfo)) {
+                return false;
+            }
         }
 
         return true;
