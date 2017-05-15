@@ -14,10 +14,7 @@
 interface Yireo_Dynamic404_Api_Matcher
 {
     /**
-     * @param array $parts
-     * @param string $urlSuffix
-     *
      * @return string
      */
-    public function findBestMatch($parts, $urlSuffix);
+    public function findBestMatch();
 }

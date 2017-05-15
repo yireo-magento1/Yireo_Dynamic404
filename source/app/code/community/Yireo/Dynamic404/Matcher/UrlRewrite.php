@@ -11,7 +11,7 @@
 /**
  * Matcher class to find matches in URL rewrites
  */
-class Yireo_Dynamic404_Matcher_UrlRewrite implements Yireo_Dynamic404_Api_Matcher
+class Yireo_Dynamic404_Matcher_UrlRewrite extends Yireo_Dynamic404_Matcher_Generic
 {
     /**
      * @var Mage_Core_Model_Abstract
@@ -20,25 +20,27 @@ class Yireo_Dynamic404_Matcher_UrlRewrite implements Yireo_Dynamic404_Api_Matche
 
     /**
      * Yireo_Dynamic404_Matcher_UrlRewrite constructor.
+     *
+     * @param array $data
      */
-    public function __construct()
+    public function __construct($data = [])
     {
         /** @var Mage_Core_Model_Resource $resource */
         $this->resource = Mage::getSingleton('core/resource');
+
+        parent::__construct($data);
     }
 
     /**
-     * @param array $parts
-     *
      * @return string|bool
      */
-    public function findBestMatch($parts, $urlSuffix)
+    public function findBestMatch()
     {
-        $results = $this->getUrlRewriteMatches($parts, $urlSuffix);
+        $results = $this->getUrlRewriteMatches($this->parts, $this->urlSuffix);
 
         foreach ($results as $result) {
             $resultParts = explode('/', $result['request_path']);
-            if (count($resultParts) === count($parts)) {
+            if (count($resultParts) === count($this->parts)) {
                 return $result['request_path'];
             }
         }
@@ -58,15 +60,17 @@ class Yireo_Dynamic404_Matcher_UrlRewrite implements Yireo_Dynamic404_Api_Matche
         $db = $this->resource->getConnection('core_read');
         $urlRewriteTable = $this->resource->getTableName('core_url_rewrite');
 
-        $partsSearch = implode('%/', $parts).'%'.$urlSuffix;
         $selectFields = [$db->quoteIdentifier('request_path'), $db->quoteIdentifier('target_path')];
+
+        $whereSearch = [];
+        $whereSearch[] = $db->quoteIdentifier('request_path').' LIKE '.$db->quote(implode('%/', $parts).'%'.$urlSuffix);
+        $whereSearch[] = $db->quoteIdentifier('request_path').' LIKE '.$db->quote('%'.array_pop($parts).$urlSuffix);
+
         $query = 'SELECT '.implode(',', $selectFields).' FROM ' . $db->quoteIdentifier($urlRewriteTable);
-        $query .= ' WHERE '.$db->quoteIdentifier('request_path').' LIKE '.$db->quote($partsSearch);
+        $query .= ' WHERE ('.implode(' OR ', $whereSearch).')';
         $query .= ' AND store_id = '. (int) Mage::app()->getStore()->getId();
         $query .= ' ORDER BY '.$db->quoteIdentifier('url_rewrite_id');
         $query .= ' LIMIT 0,100';
-
-        //echo $query;exit;
 
         $results = $db->fetchAll($query);
 

@@ -60,21 +60,22 @@ class Yireo_Dynamic404_Observer_FixUrl
         $urlSuffix = $this->stripUrlSuffixFromPath($path);
         $pathParts = $this->getPathParts($path);
 
-        $matchers = $this->matcherFactory->getMatchers();
+        $data = [
+            'path' => $path,
+            'parts' => $pathParts,
+            'urlSuffix' => $urlSuffix,
+        ];
+
+        $matchers = $this->matcherFactory->getMatchers($data);
         foreach ($matchers as $matcher) {
-            $result = $matcher->findBestMatch($pathParts, $urlSuffix);
+            $result = $matcher->findBestMatch();
             if (!empty($result)) {
                 break;
             }
         }
 
         if (empty($result)) {
-            $requestUri = $this->request->getRequestUri();
-            if (!preg_match('/^\//', $requestUri)) {
-                $requestUri = '/' . $requestUri;
-            }
-
-            $this->helper->log($this->request->getHttpHost().$requestUri);
+            $this->helper->log($this->request->getHttpHost().$this->request->getRequestUri());
             return $this;
         }
 
@@ -84,8 +85,12 @@ class Yireo_Dynamic404_Observer_FixUrl
             $result .= '?' . $query;
         }
 
+        if (!preg_match('/^(http|https):\/\//', $result)) {
+            $result = Mage::getBaseUrl().$result;
+        }
+
         $this->response->clearHeaders();
-        $this->response->setRedirect(Mage::getBaseUrl().$result, 301);
+        $this->response->setRedirect($result, 301);
     }
 
     /**
